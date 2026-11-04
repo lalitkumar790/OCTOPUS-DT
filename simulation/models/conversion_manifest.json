@@ -1,0 +1,69 @@
+{
+  "source_file": "OctopusRobot(2).FCStd",
+  "conversion": "FreeCAD BREP solids tessellated to STL and referenced by MuJoCo MJCF mesh assets",
+  "units": {
+    "source": "mm",
+    "mjcf": "m",
+    "mesh_scale": "0.001 0.001 0.001"
+  },
+  "tessellation": {
+    "linear_deflection_mm": 0.25,
+    "angular_deflection_rad": 0.2
+  },
+  "included_static_parts": [
+    "Structural_Frame",
+    "Interface_01",
+    "Interface_02",
+    "Interface_03",
+    "Interface_04",
+    "Interface_05",
+    "Interface_06",
+    "Interface_07",
+    "Interface_08",
+    "Camera_Mount_Boss",
+    "Upper_Shell",
+    "Lower_Shell",
+    "Service_Cover",
+    "Electronics_Tray",
+    "Battery_Tray",
+    "Sensor_Top_Antenna",
+    "Sensor_Front_Distance",
+    "Sensor_Bottom_Pressure",
+    "Sensor_Bottom_Depth",
+    "Sensor_Bottom_Environmental",
+    "Cable_Central_Trunk",
+    "Cable_Radial_Channels"
+  ],
+  "included_articulated_arm_instances": [
+    "TENTACLE_01",
+    "TENTACLE_02",
+    "TENTACLE_03",
+    "TENTACLE_04",
+    "TENTACLE_05",
+    "TENTACLE_06",
+    "TENTACLE_07",
+    "TENTACLE_08"
+  ],
+  "excluded": [
+    "LCS/reference geometry",
+    "hidden fastener aggregates",
+    "prototype tentacle-master parts (represented by placed tentacle instances)",
+    "molds",
+    "test fixture"
+  ],
+  "arm_root_frames": {
+    "source": "ARM_01_LCS ... ARM_08_LCS",
+    "radius_mm": 70,
+    "angular_spacing_deg": 45,
+    "local_mesh_frame": "translated to arm LCS and rotated so each arm extends along local +X"
+  },
+  "dynamics": {
+    "base": "free joint",
+    "arms": "one revolute shoulder hinge per arm; arm geometry itself is rigid",
+    "actuation": "position actuators are numerical placeholders, not pneumatic pressure control",
+    "collision": "simplified ellipsoid and capsule proxies; detailed CAD meshes are visual-only",
+    "inertial": "placeholder values; replace with measured component masses, COMs and inertias",
+    "fluid": "no buoyancy, hydrodynamics, or fluid-structure interaction yet",
+    "soft_body": "not yet a deformable continuum; no chamber inflation or silicone hyperelastic constitutive model"
+  }
+}
