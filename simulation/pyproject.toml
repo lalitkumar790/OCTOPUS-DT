@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "octopus-dt"
 version = "0.1.0"
 description = "MuJoCo research simulation scaffold for an eight-arm pneumatic soft robotic octopus"
-readme = "../README.md"
+readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
   "mujoco>=3.2,<4",
