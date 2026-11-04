@@ -1,5 +1,14 @@
 # OCTOPUS-DT Web Dashboard
 
-This directory is reserved for the Next.js + Three.js dashboard deployed on Vercel.
+Next.js + Three.js interactive morphology preview. Deploy this directory as the Vercel project root: `apps/web`.
 
-The dashboard will render exported simulation states, experiment metadata, plots, and validation status. Keep the MuJoCo runtime in the Python simulation environment or a separate service; Vercel should serve the frontend and lightweight APIs, not a long-running native simulation process.
+## Local development
+
+    npm install
+    npm run dev
+
+## Production build
+
+    npm run build
+
+The browser scene is a procedural visualization only. It is not connected to the MuJoCo engine and does not represent calibrated pneumatic actuation or fluid dynamics. The MuJoCo simulator remains in the Python package under `simulation/`.
