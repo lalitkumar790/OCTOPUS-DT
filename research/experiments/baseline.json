@@ -1,0 +1,20 @@
+{
+  "experiment_id": "baseline-free-decay-v0",
+  "description": "Zero-input software smoke run. Not a physical validation experiment.",
+  "model": "octopus_dt_v0_1.xml",
+  "steps": 2000,
+  "timestep_s": 0.001,
+  "actuation": {
+    "enabled": false
+  },
+  "environment": {
+    "fluid_density_kg_m3": 997.0,
+    "gravity_m_s2": 9.81,
+    "drag_model": "quadratic_isotropic",
+    "coefficients_status": "uncalibrated"
+  },
+  "output": {
+    "format": "csv",
+    "signals": ["time_s", "qpos_norm", "qvel_norm", "energy_proxy"]
+  }
+}
