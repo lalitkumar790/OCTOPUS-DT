@@ -2,7 +2,7 @@
 
 ## Geometry
 
-The first model is driven by the recovered FreeCAD parameter sheet. The body is represented by a simple rigid ellipsoid, and each arm is represented by a centerline elastic cable with an equivalent radius derived from the nominal width/height envelope. These simplifications are for early integration and visualization.
+The first model is driven by the recovered FreeCAD parameter sheet. The body is represented by a simple rigid ellipsoid with a free joint, and each arm is represented by a centerline elastic cable nested under the central body so all eight arms are structurally attached to the same floating base. The cable cross-section uses an equivalent circular radius derived from the nominal width/height envelope. Gravity is temporarily disabled in this morphology/elasticity baseline because buoyancy and distributed fluid forces have not yet been integrated. These simplifications are for early integration and visualization.
 
 ## Material mapping
 
