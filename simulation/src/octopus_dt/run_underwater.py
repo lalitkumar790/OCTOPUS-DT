@@ -4,8 +4,10 @@ from __future__ import annotations
 import argparse
 import csv
 from pathlib import Path
+
 import mujoco
 import numpy as np
+
 from .model import load_model
 
 
