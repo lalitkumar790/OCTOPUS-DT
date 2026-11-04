@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from octopus_dt.underwater import buoyancy_force, quadratic_drag
 
 
