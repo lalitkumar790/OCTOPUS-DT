@@ -1,0 +1,92 @@
+<mujoco model="OCTOPUS-DT CAD assembly">
+  <compiler angle="radian" meshdir="meshes" autolimits="true"/>
+  <option timestep="0.002" integrator="implicitfast" gravity="0 0 0"/>
+  <size njmax="4000" nconmax="1000"/>
+  <visual><global offwidth="1600" offheight="1000"/><map znear="0.005" zfar="3"/><quality shadowsize="2048"/></visual>
+  <asset>
+    <mesh name="structural_frame" file="structural_frame.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="interface_01" file="interface_01.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="interface_02" file="interface_02.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="interface_03" file="interface_03.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="interface_04" file="interface_04.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="interface_05" file="interface_05.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="interface_06" file="interface_06.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="interface_07" file="interface_07.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="interface_08" file="interface_08.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="camera_mount_boss" file="camera_mount_boss.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="upper_shell" file="upper_shell.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="lower_shell" file="lower_shell.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="service_cover" file="service_cover.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="electronics_tray" file="electronics_tray.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="battery_tray" file="battery_tray.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="sensor_top_antenna" file="sensor_top_antenna.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="sensor_front_distance" file="sensor_front_distance.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="sensor_bottom_pressure" file="sensor_bottom_pressure.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="sensor_bottom_depth" file="sensor_bottom_depth.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="sensor_bottom_environmental" file="sensor_bottom_environmental.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="cable_central_trunk" file="cable_central_trunk.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="cable_radial_channels" file="cable_radial_channels.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="tentacle_01_local" file="tentacle_01_local.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="tentacle_02_local" file="tentacle_02_local.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="tentacle_03_local" file="tentacle_03_local.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="tentacle_04_local" file="tentacle_04_local.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="tentacle_05_local" file="tentacle_05_local.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="tentacle_06_local" file="tentacle_06_local.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="tentacle_07_local" file="tentacle_07_local.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="tentacle_08_local" file="tentacle_08_local.stl" scale="0.001 0.001 0.001"/>
+    <material name="cad_shell" rgba="0.20 0.31 0.38 1" roughness="0.48"/>
+    <material name="cad_frame" rgba="0.48 0.57 0.60 1" roughness="0.55"/>
+    <material name="cad_arm" rgba="0.12 0.57 0.56 1" roughness="0.42"/>
+  </asset>
+  <default><joint damping="0.08" armature="0.0002"/><geom friction="0.7 0.1 0.1" solref="0.01 1" solimp="0.9 0.95 0.001"/></default>
+  <worldbody>
+    <light name="key" pos="0 0 1.4" dir="0 0 -1" diffuse="0.9 0.9 0.9"/>
+    <camera name="top" pos="0 0 1.25" xyaxes="1 0 0 0 1 0" fovy="45"/>
+    <camera name="perspective" pos="0.75 -0.95 0.68" xyaxes="0.78 0.62 0 -0.32 0.40 0.86" fovy="48"/>
+    <body name="octopus_base" pos="0 0 0">
+      <freejoint name="base_free"/>
+      <inertial pos="0 0 0.07" mass="1.0" diaginertia="0.01 0.01 0.015"/>
+      <geom name="cad_structural_frame" type="mesh" mesh="structural_frame" material="cad_frame" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_interface_01" type="mesh" mesh="interface_01" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_interface_02" type="mesh" mesh="interface_02" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_interface_03" type="mesh" mesh="interface_03" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_interface_04" type="mesh" mesh="interface_04" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_interface_05" type="mesh" mesh="interface_05" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_interface_06" type="mesh" mesh="interface_06" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_interface_07" type="mesh" mesh="interface_07" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_interface_08" type="mesh" mesh="interface_08" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_camera_mount_boss" type="mesh" mesh="camera_mount_boss" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_upper_shell" type="mesh" mesh="upper_shell" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_lower_shell" type="mesh" mesh="lower_shell" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_service_cover" type="mesh" mesh="service_cover" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_electronics_tray" type="mesh" mesh="electronics_tray" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_battery_tray" type="mesh" mesh="battery_tray" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_sensor_top_antenna" type="mesh" mesh="sensor_top_antenna" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_sensor_front_distance" type="mesh" mesh="sensor_front_distance" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_sensor_bottom_pressure" type="mesh" mesh="sensor_bottom_pressure" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_sensor_bottom_depth" type="mesh" mesh="sensor_bottom_depth" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_sensor_bottom_environmental" type="mesh" mesh="sensor_bottom_environmental" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_cable_central_trunk" type="mesh" mesh="cable_central_trunk" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="cad_cable_radial_channels" type="mesh" mesh="cable_radial_channels" material="cad_shell" contype="0" conaffinity="0" group="1"/>
+      <geom name="base_collision_proxy" type="ellipsoid" pos="0 0 0.072" size="0.098 0.098 0.052" rgba="0.2 0.3 0.4 0.12" contype="1" conaffinity="1" group="3"/>
+      <body name="arm_01" pos="0.070000000 0.000000000 0"><joint name="arm_01_hinge" type="hinge" pos="0 0 0" axis="0 1 0" range="-1.2 1.2"/><inertial pos="0.14 0 0.046" mass="0.05" diaginertia="0.0002 0.0005 0.0005"/><geom name="cad_tentacle_01" type="mesh" mesh="tentacle_01_local" material="cad_arm" contype="0" conaffinity="0" group="1"/><geom name="arm_01_collision_proxy" type="capsule" fromto="0.004 0 0.046 0.279 0 0.046" size="0.023" rgba="0.1 0.8 0.7 0.10" contype="1" conaffinity="1" group="3"/></body>
+      <body name="arm_02" pos="0.049497475 0.049497475 0"><joint name="arm_02_hinge" type="hinge" pos="0 0 0" axis="0 1 0" range="-1.2 1.2"/><inertial pos="0.14 0 0.046" mass="0.05" diaginertia="0.0002 0.0005 0.0005"/><geom name="cad_tentacle_02" type="mesh" mesh="tentacle_02_local" material="cad_arm" contype="0" conaffinity="0" group="1"/><geom name="arm_02_collision_proxy" type="capsule" fromto="0.004 0 0.046 0.279 0 0.046" size="0.023" rgba="0.1 0.8 0.7 0.10" contype="1" conaffinity="1" group="3"/></body>
+      <body name="arm_03" pos="0.000000000 0.070000000 0"><joint name="arm_03_hinge" type="hinge" pos="0 0 0" axis="0 1 0" range="-1.2 1.2"/><inertial pos="0.14 0 0.046" mass="0.05" diaginertia="0.0002 0.0005 0.0005"/><geom name="cad_tentacle_03" type="mesh" mesh="tentacle_03_local" material="cad_arm" contype="0" conaffinity="0" group="1"/><geom name="arm_03_collision_proxy" type="capsule" fromto="0.004 0 0.046 0.279 0 0.046" size="0.023" rgba="0.1 0.8 0.7 0.10" contype="1" conaffinity="1" group="3"/></body>
+      <body name="arm_04" pos="-0.049497475 0.049497475 0"><joint name="arm_04_hinge" type="hinge" pos="0 0 0" axis="0 1 0" range="-1.2 1.2"/><inertial pos="0.14 0 0.046" mass="0.05" diaginertia="0.0002 0.0005 0.0005"/><geom name="cad_tentacle_04" type="mesh" mesh="tentacle_04_local" material="cad_arm" contype="0" conaffinity="0" group="1"/><geom name="arm_04_collision_proxy" type="capsule" fromto="0.004 0 0.046 0.279 0 0.046" size="0.023" rgba="0.1 0.8 0.7 0.10" contype="1" conaffinity="1" group="3"/></body>
+      <body name="arm_05" pos="-0.070000000 0.000000000 0"><joint name="arm_05_hinge" type="hinge" pos="0 0 0" axis="0 1 0" range="-1.2 1.2"/><inertial pos="0.14 0 0.046" mass="0.05" diaginertia="0.0002 0.0005 0.0005"/><geom name="cad_tentacle_05" type="mesh" mesh="tentacle_05_local" material="cad_arm" contype="0" conaffinity="0" group="1"/><geom name="arm_05_collision_proxy" type="capsule" fromto="0.004 0 0.046 0.279 0 0.046" size="0.023" rgba="0.1 0.8 0.7 0.10" contype="1" conaffinity="1" group="3"/></body>
+      <body name="arm_06" pos="-0.049497475 -0.049497475 0"><joint name="arm_06_hinge" type="hinge" pos="0 0 0" axis="0 1 0" range="-1.2 1.2"/><inertial pos="0.14 0 0.046" mass="0.05" diaginertia="0.0002 0.0005 0.0005"/><geom name="cad_tentacle_06" type="mesh" mesh="tentacle_06_local" material="cad_arm" contype="0" conaffinity="0" group="1"/><geom name="arm_06_collision_proxy" type="capsule" fromto="0.004 0 0.046 0.279 0 0.046" size="0.023" rgba="0.1 0.8 0.7 0.10" contype="1" conaffinity="1" group="3"/></body>
+      <body name="arm_07" pos="-0.000000000 -0.070000000 0"><joint name="arm_07_hinge" type="hinge" pos="0 0 0" axis="0 1 0" range="-1.2 1.2"/><inertial pos="0.14 0 0.046" mass="0.05" diaginertia="0.0002 0.0005 0.0005"/><geom name="cad_tentacle_07" type="mesh" mesh="tentacle_07_local" material="cad_arm" contype="0" conaffinity="0" group="1"/><geom name="arm_07_collision_proxy" type="capsule" fromto="0.004 0 0.046 0.279 0 0.046" size="0.023" rgba="0.1 0.8 0.7 0.10" contype="1" conaffinity="1" group="3"/></body>
+      <body name="arm_08" pos="0.049497475 -0.049497475 0"><joint name="arm_08_hinge" type="hinge" pos="0 0 0" axis="0 1 0" range="-1.2 1.2"/><inertial pos="0.14 0 0.046" mass="0.05" diaginertia="0.0002 0.0005 0.0005"/><geom name="cad_tentacle_08" type="mesh" mesh="tentacle_08_local" material="cad_arm" contype="0" conaffinity="0" group="1"/><geom name="arm_08_collision_proxy" type="capsule" fromto="0.004 0 0.046 0.279 0 0.046" size="0.023" rgba="0.1 0.8 0.7 0.10" contype="1" conaffinity="1" group="3"/></body>
+    </body>
+  </worldbody>
+  <actuator>
+    <position name="arm_01_position" joint="arm_01_hinge" kp="0.5" kv="0.05" ctrlrange="-1.2 1.2"/>
+    <position name="arm_02_position" joint="arm_02_hinge" kp="0.5" kv="0.05" ctrlrange="-1.2 1.2"/>
+    <position name="arm_03_position" joint="arm_03_hinge" kp="0.5" kv="0.05" ctrlrange="-1.2 1.2"/>
+    <position name="arm_04_position" joint="arm_04_hinge" kp="0.5" kv="0.05" ctrlrange="-1.2 1.2"/>
+    <position name="arm_05_position" joint="arm_05_hinge" kp="0.5" kv="0.05" ctrlrange="-1.2 1.2"/>
+    <position name="arm_06_position" joint="arm_06_hinge" kp="0.5" kv="0.05" ctrlrange="-1.2 1.2"/>
+    <position name="arm_07_position" joint="arm_07_hinge" kp="0.5" kv="0.05" ctrlrange="-1.2 1.2"/>
+    <position name="arm_08_position" joint="arm_08_hinge" kp="0.5" kv="0.05" ctrlrange="-1.2 1.2"/>
+  </actuator>
+</mujoco>
