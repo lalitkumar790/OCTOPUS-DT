@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import mujoco.viewer
+
 from .model import load_model
 
 
