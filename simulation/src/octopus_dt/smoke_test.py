@@ -1,8 +1,8 @@
 """Compile and sanity-check the MuJoCo model."""
 from __future__ import annotations
 
-import numpy as np
 import mujoco
+import numpy as np
 
 from .model import load_model
 
@@ -15,7 +15,6 @@ def main() -> None:
     if missing:
         raise RuntimeError(f"Missing cable root bodies: {missing}")
 
-    # A short deterministic integration check catches invalid initial states.
     for _ in range(100):
         mujoco.mj_step(model, data)
 
