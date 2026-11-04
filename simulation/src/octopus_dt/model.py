@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+
 import mujoco
 
 # Package layout: repository/simulation/src/octopus_dt/model.py
