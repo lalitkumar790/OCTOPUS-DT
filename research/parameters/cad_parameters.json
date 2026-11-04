@@ -1,0 +1,59 @@
+{
+  "source": {
+    "file": "OctopusRobot.FCStd",
+    "status": "recovered_from_freecad_document",
+    "note": "Design parameters recovered from the supplied FreeCAD archive; confirm against the final manufactured robot."
+  },
+  "units": "SI",
+  "body": {
+    "diameter_m": 0.2,
+    "height_m": 0.1,
+    "placeholder_mass_kg": 0.55,
+    "mass_status": "unvalidated_placeholder"
+  },
+  "arms": {
+    "count": 8,
+    "angular_spacing_deg": 45,
+    "active_length_m": 0.22,
+    "overall_tentacle_length_m": 0.25,
+    "proximal_connector_m": 0.03,
+    "distal_tip_length_m": 0.025,
+    "width_m": 0.03,
+    "height_m": 0.022,
+    "tip_width_m": 0.022,
+    "tip_height_m": 0.016,
+    "chambers_per_arm": 10,
+    "chamber_length_m": 0.016,
+    "chamber_width_m": 0.02,
+    "chamber_height_m": 0.01,
+    "chamber_wall_m": 0.0025,
+    "chamber_pitch_m": 0.022,
+    "passive_wall_m": 0.003,
+    "limiting_layer_m": 0.0015,
+    "limiting_layer_segment_length_m": 0.018,
+    "limiting_layer_gap_m": 0.002,
+    "design_bending_target_deg": 90,
+    "design_bending_target_status": "unvalidated_design_target"
+  },
+  "materials": {
+    "ecoflex_0030": {
+      "yeoh_c10_pa": 32200,
+      "yeoh_c20_pa": 0,
+      "yeoh_c30_pa": 0,
+      "status": "spreadsheet_reference_only"
+    },
+    "dragonskin_30": {
+      "yeoh_c10_pa": 241600,
+      "yeoh_c20_pa": 0,
+      "yeoh_c30_pa": 0,
+      "status": "spreadsheet_reference_only"
+    }
+  },
+  "pressure": {
+    "simulation_max_pa": 150000,
+    "conservative_test_reference_pa": 100000,
+    "burst_test_reference_pa": 300000,
+    "status": "design_sheet_values_not_a_safety_certification",
+    "warning": "Do not use these values as operating instructions. Establish safe limits through material data, pressure-vessel design, guarded tests, and instrumented validation."
+  }
+}
