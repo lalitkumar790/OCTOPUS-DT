@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "octopus-dt"
+version = "0.1.0"
+description = "MuJoCo research simulation scaffold for an eight-arm pneumatic soft robotic octopus"
+readme = "../README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "mujoco>=3.2,<4",
+  "numpy>=1.24"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
