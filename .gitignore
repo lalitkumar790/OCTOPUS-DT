@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Simulation output
+research/datasets/*
+!research/datasets/.gitkeep
+*.mp4
+*.h5
+*.npz
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.vercel/
+.turbo/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.env
+.env.*
+!.env.example
