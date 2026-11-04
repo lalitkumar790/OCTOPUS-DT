@@ -4,7 +4,8 @@ from __future__ import annotations
 from pathlib import Path
 import mujoco
 
-DEFAULT_MODEL = Path(__file__).resolve().parents[3] / "models" / "octopus_dt_v0_1.xml"
+# Package layout: repository/simulation/src/octopus_dt/model.py
+DEFAULT_MODEL = Path(__file__).resolve().parents[2] / "models" / "octopus_dt_v0_1.xml"
 
 
 def load_model(path: str | Path = DEFAULT_MODEL) -> tuple[mujoco.MjModel, mujoco.MjData]:
