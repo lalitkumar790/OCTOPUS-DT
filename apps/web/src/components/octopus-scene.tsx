@@ -10,7 +10,7 @@ export default function OctopusScene({amplitude,frequency,phase,selectedArm,paus
   useEffect(()=>{
     const host=hostRef.current;if(!host)return;
     const scene=new THREE.Scene();scene.background=new THREE.Color("#07131b");
-    const camera=new THREE.PerspectiveCamera(38,1,0.01,10);camera.position.set(0.56,-0.68,0.57);
+    const camera=new THREE.PerspectiveCamera(38,1,0.01,10);camera.up.set(0,0,1);camera.position.set(0.56,-0.68,0.57);
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});
     renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;host.appendChild(renderer.domElement);
     const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,0,0);controls.minDistance=0.36;controls.maxDistance=1.8;controls.maxPolarAngle=Math.PI*0.48;
