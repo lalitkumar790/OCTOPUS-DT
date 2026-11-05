@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "octopus-dt"
-version = "0.1.0"
-description = "MuJoCo research simulation scaffold for an eight-arm pneumatic soft robotic octopus"
+version = "0.2.0"
+description = "MuJoCo research simulation for an eight-arm pneumatic soft robotic octopus"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -14,7 +14,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.5"]
+server = ["fastapi>=0.115", "uvicorn[standard]>=0.30"]
+dev = ["pytest>=8", "ruff>=0.5", "httpx>=0.27"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
