@@ -17,6 +17,9 @@ type Props = {
   mujocoArms?: ArmState[];
 };
 
+const SOFT_SEGMENTS_PER_ARM = 10;
+const SOFT_SEGMENT_LENGTH = 0.022;
+
 const STATIC_CAD_PARTS = [
   "structural_frame.stl", "interface_01.stl", "interface_02.stl",
   "interface_03.stl", "interface_04.stl", "interface_05.stl",
@@ -43,6 +46,8 @@ export default function OctopusScene({
   const proceduralRootRef = useRef<THREE.Group | null>(null);
   const cadRootRef = useRef<THREE.Group | null>(null);
   const cadArmGroupsRef = useRef<THREE.Group[]>([]);
+  const cadArmJointGroupsRef = useRef<THREE.Group[][]>([]);
+  const softAnglesRef = useRef<number[][]>(Array.from({ length: 8 }, () => Array(10).fill(0)));
   const stateRef = useRef({
     pressures, selectedArm, paused, underwater, onSelectArm, mujocoArms,
   });
@@ -65,9 +70,15 @@ export default function OctopusScene({
         const response = await fetch(apiBase + "/api/model", { cache: "no-store" });
         if (!response.ok) throw new Error("MuJoCo state unavailable");
         const state = await response.json();
+        const softResponse = await fetch(apiBase + "/api/soft/model", { cache: "no-store" });
+        if (!softResponse.ok) throw new Error("Soft continuum state unavailable");
+        const softState = await softResponse.json();
         if (active) {
           setApiConnected(true);
           setLiveMujocoArms(state.arms ?? []);
+          softAnglesRef.current = (softState.arms ?? []).map(
+            (item: { joint_angles_rad?: number[] }) => item.joint_angles_rad ?? Array(10).fill(0),
+          );
         }
       } catch {
         if (active) setApiConnected(false);
@@ -297,7 +308,10 @@ export default function OctopusScene({
         }
       } else {
         cadArmGroupsRef.current.forEach((group, index) => {
-          group.rotation.y = state.mujocoArms[index]?.joint_angle_rad ?? 0;
+          const angles = softAnglesRef.current[index] ?? [];
+          cadArmJointGroupsRef.current[index]?.forEach((jointGroup, segment) => {
+            jointGroup.rotation.y = angles[segment] ?? 0;
+          });
           group.scale.setScalar(index === state.selectedArm ? 1.025 : 1);
         });
       }
@@ -328,6 +342,7 @@ export default function OctopusScene({
       proceduralRootRef.current = null;
       cadRootRef.current = null;
       cadArmGroupsRef.current = [];
+      cadArmJointGroupsRef.current = [];
     };
   }, []);
 
@@ -368,33 +383,50 @@ export default function OctopusScene({
         const assembled = new THREE.Group();
         staticMeshes.forEach((mesh) => assembled.add(mesh));
         const armGroups: THREE.Group[] = [];
+        const armJointGroups: THREE.Group[][] = [];
         for (let index = 0; index < 8; index += 1) {
-          const filename = `tentacle_${String(index + 1).padStart(2, "0")}_local.stl`;
-          const geometry = await loader.loadAsync(
-            `${apiBase.replace(/\/$/, "")}/assets/meshes/${filename}`,
-          );
-          geometry.scale(0.001, 0.001, 0.001);
-          geometry.computeVertexNormals();
-          const material = new THREE.MeshPhysicalMaterial({
-            color: "#28bfae", roughness: 0.38, metalness: 0.08,
-            clearcoat: 0.75, emissive: "#06443e",
-          });
-          const mesh = new THREE.Mesh(geometry, material);
-          mesh.castShadow = true;
-          mesh.receiveShadow = true;
           const angle = index * Math.PI / 4;
           const group = new THREE.Group();
-          group.position.set(0.07 * Math.cos(angle), 0.07 * Math.sin(angle), 0);
+          group.position.set(0.075 * Math.cos(angle), 0.075 * Math.sin(angle), 0);
           group.rotation.z = angle;
           group.userData.armIndex = index;
-          group.add(mesh);
+          const joints: THREE.Group[] = [];
+          let parent: THREE.Group = group;
+          for (let segment = 0; segment < SOFT_SEGMENTS_PER_ARM; segment += 1) {
+            const joint = new THREE.Group();
+            parent.add(joint);
+            joints.push(joint);
+            const link = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.012, 0.012, SOFT_SEGMENT_LENGTH, 18, 1),
+              new THREE.MeshPhysicalMaterial({
+                color: "#28bfae", roughness: 0.34, metalness: 0.08,
+                clearcoat: 0.8, emissive: "#06443e",
+              }),
+            );
+            link.rotation.z = -Math.PI / 2;
+            link.position.x = SOFT_SEGMENT_LENGTH / 2;
+            link.castShadow = true;
+            link.receiveShadow = true;
+            joint.add(link);
+            const jointCap = new THREE.Mesh(
+              new THREE.SphereGeometry(0.0125, 12, 10),
+              new THREE.MeshStandardMaterial({ color: "#54d9ca", metalness: 0.12, roughness: 0.38 }),
+            );
+            joint.add(jointCap);
+            const next = new THREE.Group();
+            next.position.x = SOFT_SEGMENT_LENGTH;
+            joint.add(next);
+            parent = next;
+          }
           assembled.add(group);
           armGroups.push(group);
+          armJointGroups.push(joints);
         }
         if (cancelled) return;
         cadRoot.clear();
         cadRoot.add(assembled);
         cadArmGroupsRef.current = armGroups;
+        cadArmJointGroupsRef.current = armJointGroups;
         cadRoot.visible = true;
         proceduralRoot.visible = false;
       } catch (error) {
