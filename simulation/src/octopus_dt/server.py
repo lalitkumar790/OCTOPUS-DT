@@ -249,7 +249,7 @@ def health() -> dict[str, Any]:
         model, _ = engine.require()
         return {"status": "ready", "engine": "MuJoCo", "model": str(MODEL_PATH),
                 "cad_model": True, "nu": int(model.nu)}
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001  # noqa: BLE001
         return {"status": "unavailable", "engine": "MuJoCo", "cad_model": False,
                 "detail": str(exc)}
 
@@ -258,7 +258,7 @@ def health() -> dict[str, Any]:
 def model_info() -> dict[str, Any]:
     try:
         return engine.state()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
@@ -270,7 +270,7 @@ def reset_simulation() -> dict[str, Any]:
             mujoco.mj_resetData(model, data)
             mujoco.mj_forward(model, data)
         return engine.state()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
@@ -278,7 +278,7 @@ def reset_simulation() -> dict[str, Any]:
 def set_joint_targets(command: JointCommand) -> dict[str, Any]:
     try:
         return engine.set_targets(command.joint_targets_rad, command.steps)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
@@ -302,7 +302,7 @@ def set_pressure(command: PressureCommand) -> dict[str, Any]:
         targets = [0.0] * ARM_COUNT
         targets[command.arm_index] = float(np.clip(target, -1.2, 1.2))
         return engine.set_targets(targets, command.steps)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
@@ -310,7 +310,7 @@ def set_pressure(command: PressureCommand) -> dict[str, Any]:
 def locomotion_experiment(request: LocomotionRequest) -> dict[str, Any]:
     try:
         return engine.step_gait(request)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
@@ -326,7 +326,7 @@ def calibrate_continuum(request: CalibrationRequest) -> dict[str, Any]:
             json.dumps(result, indent=2), encoding="utf-8"
         )
         return result
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
@@ -361,7 +361,7 @@ def continuum_pressure(request: ContinuumPressureRequest) -> dict[str, Any]:
                     "tip_position_m": data.site_xpos[tip_id].tolist(),
                     "calibration_rmse_rad": calibration["rmse_rad_per_segment"],
                     "calibrated": True}
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
@@ -376,7 +376,7 @@ async def stream_state(socket: WebSocket) -> None:
                     mujoco.mj_step(model, data)
                     state = engine.state()
                 await socket.send_json(state)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 await socket.send_json({"engine": "MuJoCo", "status": "unavailable",
                                         "detail": str(exc)})
                 await asyncio.sleep(1.0)
