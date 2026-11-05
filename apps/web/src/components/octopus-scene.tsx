@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { STLLoader } from "three/addons/loaders/STLLoader.js";
@@ -12,9 +12,9 @@ type Props = {
   paused: boolean;
   underwater: boolean;
   onSelectArm: (index: number) => void;
-  apiBase: string;
-  simulationAvailable: boolean;
-  mujocoArms: ArmState[];
+  apiBase?: string;
+  simulationAvailable?: boolean;
+  mujocoArms?: ArmState[];
 };
 
 const STATIC_CAD_PARTS = [
@@ -31,8 +31,14 @@ const STATIC_CAD_PARTS = [
 
 export default function OctopusScene({
   pressures, selectedArm, paused, underwater, onSelectArm,
-  apiBase, simulationAvailable, mujocoArms,
+  apiBase: configuredApiBase, simulationAvailable: externalSimulationAvailable,
+  mujocoArms: externalMujocoArms = [],
 }: Props) {
+  const apiBase = (configuredApiBase ?? process.env.NEXT_PUBLIC_SIM_API_URL ?? "").replace(/\\/$/, "");
+  const [apiConnected, setApiConnected] = useState(false);
+  const [liveMujocoArms, setLiveMujocoArms] = useState<ArmState[]>([]);
+  const simulationAvailable = externalSimulationAvailable ?? apiConnected;
+  const mujocoArms = externalMujocoArms.length ? externalMujocoArms : liveMujocoArms;
   const hostRef = useRef<HTMLDivElement>(null);
   const proceduralRootRef = useRef<THREE.Group | null>(null);
   const cadRootRef = useRef<THREE.Group | null>(null);
@@ -40,6 +46,40 @@ export default function OctopusScene({
   const stateRef = useRef({
     pressures, selectedArm, paused, underwater, onSelectArm, mujocoArms,
   });
+
+  useEffect(() => {
+    if (!apiBase) {
+      setApiConnected(false);
+      return;
+    }
+    let active = true;
+    const poll = async () => {
+      try {
+        const health = await fetch(apiBase + "/health", { cache: "no-store" });
+        const payload = await health.json();
+        if (!active) return;
+        if (payload.status !== "ready") {
+          setApiConnected(false);
+          return;
+        }
+        const response = await fetch(apiBase + "/api/model", { cache: "no-store" });
+        if (!response.ok) throw new Error("MuJoCo state unavailable");
+        const state = await response.json();
+        if (active) {
+          setApiConnected(true);
+          setLiveMujocoArms(state.arms ?? []);
+        }
+      } catch {
+        if (active) setApiConnected(false);
+      }
+    };
+    void poll();
+    const timer = window.setInterval(() => void poll(), 1200);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [apiBase]);
 
   useEffect(() => {
     stateRef.current = {
