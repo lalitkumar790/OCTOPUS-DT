@@ -9,7 +9,7 @@ export default function OctopusScene({pressures,selectedArm,paused,underwater,on
  useEffect(()=>{stateRef.current={pressures,selectedArm,paused,underwater,onSelectArm};},[pressures,selectedArm,paused,underwater,onSelectArm]);
  useEffect(()=>{
   const host=hostRef.current;if(!host)return;
-  const scene=new THREE.Scene();scene.background=new THREE.Color("#07131b");
+  const scene=new THREE.Scene();scene.background=new THREE.Color("#07131b");const backgroundColor=scene.background as THREE.Color;
   const camera=new THREE.PerspectiveCamera(38,1,0.01,10);camera.up.set(0,0,1);camera.position.set(.56,-.68,.57);
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;host.appendChild(renderer.domElement);
   const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,0,0);controls.minDistance=.36;controls.maxDistance=1.8;controls.maxPolarAngle=Math.PI*.48;
@@ -27,7 +27,7 @@ export default function OctopusScene({pressures,selectedArm,paused,underwater,on
   renderer.domElement.addEventListener("pointerdown",pick);
   const resize=()=>{const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);};const observer=new ResizeObserver(resize);observer.observe(host);resize();
   let elapsed=0,previous=performance.now(),frame=0;
-  const animate=(now:number)=>{frame=requestAnimationFrame(animate);const dt=Math.min((now-previous)/1000,.04);previous=now;const s=stateRef.current;if(!s.paused)elapsed+=dt;scene.background?.set(s.underwater?"#062330":"#07131b");water.visible=s.underwater;
+  const animate=(now:number)=>{frame=requestAnimationFrame(animate);const dt=Math.min((now-previous)/1000,.04);previous=now;const s=stateRef.current;if(!s.paused)elapsed+=dt;backgroundColor.set(s.underwater?"#062330":"#07131b");water.visible=s.underwater;
    for(let i=0;i<8;i++){const a=i*Math.PI/4,radial=new THREE.Vector3(Math.cos(a),Math.sin(a),0),tangent=new THREE.Vector3(-Math.sin(a),Math.cos(a),0),pts:THREE.Vector3[]=[];const chambers=s.pressures[i]??Array(10).fill(0),mean=chambers.reduce((v,p)=>v+p,0)/10,pressureGain=mean/80,wave=elapsed*.75+i*.18;
     for(let j=0;j<=40;j++){const u=j/40,r=base+length*u,ci=Math.min(9,Math.floor(u*10)),p=(chambers[ci]??0)/80,distal=chambers.slice(0,ci+1).reduce((v,x)=>v+x,0)/Math.max(1,ci+1)/80;const bend=(.015+.105*p+.045*distal)*u*Math.sin(wave-u*2.3),side=(.008+.018*p)*u*Math.cos(wave-u*2.1);pts.push(radial.clone().multiplyScalar(r).add(tangent.clone().multiplyScalar(side)).add(new THREE.Vector3(0,0,bend)));}
     const geometry=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),64,.012,10,false);arms[i].geometry.dispose();arms[i].geometry=geometry;mats[i].emissiveIntensity=i===s.selectedArm?.24+pressureGain*.18:.025+pressureGain*.05;mats[i].roughness=i===s.selectedArm?.22:.32;
