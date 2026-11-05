@@ -45,6 +45,11 @@ class JointCommand(BaseModel):
     joint_targets_rad: list[float] = Field(min_length=ARM_COUNT, max_length=ARM_COUNT)
     steps: int = Field(default=25, ge=1, le=2000)
 
+class SoftPressureCommand(BaseModel):
+    arm_index: int = Field(ge=0, lt=ARM_COUNT)
+    pressures_kpa: list[float] = Field(min_length=CHAMBER_COUNT, max_length=CHAMBER_COUNT)
+    steps: int = Field(default=250, ge=1, le=2000)
+
 
 class LocomotionRequest(BaseModel):
     duration_s: float = Field(default=8.0, gt=0, le=120)
@@ -78,6 +83,11 @@ class SimulationEngine:
         self.arm_actuator_ids: list[int] = []
         self.continuum_model: mujoco.MjModel | None = None
         self.continuum_data: mujoco.MjData | None = None
+        self.soft_model: mujoco.MjModel | None = None
+        self.soft_data: mujoco.MjData | None = None
+        self.soft_actuator_ids: list[list[int]] = []
+        self.soft_tip_ids: list[int] = []
+        self.soft_joint_ids: list[list[int]] = []
 
     def load(self) -> None:
         with self.lock:
@@ -106,6 +116,61 @@ class SimulationEngine:
             self.arm_joint_ids, self.arm_actuator_ids = joints, actuators
             mujoco.mj_forward(model, data)
 
+    def require_soft(self) -> tuple[mujoco.MjModel, mujoco.MjData]:
+        with self.lock:
+            if self.soft_model is None:
+                soft_path = SIMULATION_DIR / "models" / "octopus_soft_continuum.xml"
+                if not soft_path.is_file():
+                    raise FileNotFoundError(f"Soft continuum MJCF not found: {soft_path}")
+                model = mujoco.MjModel.from_xml_path(str(soft_path))
+                data = mujoco.MjData(model)
+                actuator_ids, joint_ids, tip_ids = [], [], []
+                for arm in range(1, ARM_COUNT + 1):
+                    arm_actuators, arm_joints = [], []
+                    for segment in range(1, CHAMBER_COUNT + 1):
+                        actuator_name = f"pressure_{arm}_{segment}"
+                        joint_name = f"arm_{arm}_joint_{segment:02d}"
+                        aid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
+                        jid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, joint_name)
+                        if aid < 0 or jid < 0: raise RuntimeError(f"Missing {actuator_name}/{joint_name}")
+                        arm_actuators.append(aid); arm_joints.append(jid)
+                    tid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, f"arm_{arm}_tip")
+                    if tid < 0: raise RuntimeError(f"Missing tip site for arm {arm}")
+                    actuator_ids.append(arm_actuators); joint_ids.append(arm_joints); tip_ids.append(tid)
+                self.soft_model, self.soft_data = model, data
+                self.soft_actuator_ids, self.soft_joint_ids, self.soft_tip_ids = actuator_ids, joint_ids, tip_ids
+                mujoco.mj_forward(model, data)
+            assert self.soft_model is not None and self.soft_data is not None
+            return self.soft_model, self.soft_data
+
+    def soft_state(self) -> dict[str, Any]:
+        model, data = self.require_soft()
+        with self.lock:
+            arms = []
+            for arm in range(ARM_COUNT):
+                angles = [float(data.qpos[int(model.jnt_qposadr[jid])]) for jid in self.soft_joint_ids[arm]]
+                pressures = [float(data.ctrl[aid]) for aid in self.soft_actuator_ids[arm]]
+                arms.append({"arm_index": arm, "joint_angles_rad": angles, "pressures_kpa": pressures,
+                             "tip_position_m": data.site_xpos[self.soft_tip_ids[arm]].tolist()})
+            return {"engine": "MuJoCo", "model": "eight-arm, ten-segment-per-arm pressure-driven continuum surrogate",
+                    "simulation_time_s": float(data.time), "arms": arms, "nq": int(model.nq),
+                    "nv": int(model.nv), "nu": int(model.nu), "segment_count_per_arm": CHAMBER_COUNT,
+                    "actuation": "pressure-derived joint torque with passive elastic restoring stiffness",
+                    "calibrated": False,
+                    "parameter_note": "Actuator area/lever conversion and segment stiffness are provisional; identify them from hardware tests before quantitative claims."}
+
+    def apply_soft_pressure(self, command: SoftPressureCommand) -> dict[str, Any]:
+        if not np.all(np.isfinite(command.pressures_kpa)) or any(v < 0 or v > 80 for v in command.pressures_kpa):
+            raise ValueError("Pressures must be finite and between 0 and 80 kPa")
+        model, data = self.require_soft()
+        with self.lock:
+            for pressure, aid in zip(command.pressures_kpa, self.soft_actuator_ids[command.arm_index], strict=True):
+                data.ctrl[aid] = float(pressure)
+            for _ in range(command.steps): mujoco.mj_step(model, data)
+            state = self.soft_state()
+            state["commanded_arm"] = command.arm_index
+            state["commanded_pressures_kpa"] = command.pressures_kpa
+            return state
     def require(self) -> tuple[mujoco.MjModel, mujoco.MjData]:
         self.load()
         assert self.model is not None and self.data is not None
@@ -278,6 +343,22 @@ def reset_simulation() -> dict[str, Any]:
 def set_joint_targets(command: JointCommand) -> dict[str, Any]:
     try:
         return engine.set_targets(command.joint_targets_rad, command.steps)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/soft/model")
+def soft_model_state() -> dict[str, Any]:
+    try:
+        return engine.soft_state()
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.post("/api/soft/pressure")
+def soft_pressure(command: SoftPressureCommand) -> dict[str, Any]:
+    try:
+        return engine.apply_soft_pressure(command)
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
