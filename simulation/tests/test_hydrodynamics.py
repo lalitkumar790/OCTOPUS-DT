@@ -12,7 +12,7 @@ def test_distributed_buoyancy_sums_to_archimedes_force():
         velocities, masses, volume, 0.0, rho, 0.0, gravity
     )
     assert forces[:, 2].sum() == pytest.approx(rho * volume * gravity)
-    assert forces[:, :2].sum() == pytest.approx([0.0, 0.0])
+    assert np.allclose(forces[:, :2].sum(axis=0), [0.0, 0.0])
 
 
 def test_drag_opposes_body_velocity():
