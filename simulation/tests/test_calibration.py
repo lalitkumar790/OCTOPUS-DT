@@ -2,8 +2,10 @@ import numpy as np
 import pytest
 
 from octopus_dt.calibration import (
-    fit_pressure_to_joint_angles, fit_pressure_to_tip_angle,
-    predict_joint_angles, predict_tip_angle,
+    fit_pressure_to_joint_angles,
+    fit_pressure_to_tip_angle,
+    predict_joint_angles,
+    predict_tip_angle,
 )
 
 
