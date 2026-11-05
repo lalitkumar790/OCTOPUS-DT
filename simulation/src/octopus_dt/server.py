@@ -26,7 +26,6 @@ from .actuation import travelling_wave_joint_targets
 from .calibration import fit_pressure_to_joint_angles, predict_joint_angles
 from .hydrodynamics import distributed_hydrodynamic_forces
 
-
 ROOT = Path(__file__).resolve().parents[3]
 SIMULATION_DIR = Path(__file__).resolve().parents[2]
 MODEL_PATH = Path(os.getenv("OCTOPUS_MODEL_PATH", SIMULATION_DIR / "models" / "octopus_dt_cad.xml"))
