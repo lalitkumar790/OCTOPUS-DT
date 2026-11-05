@@ -26,10 +26,25 @@ from .actuation import travelling_wave_joint_targets
 from .calibration import fit_pressure_to_joint_angles, predict_joint_angles
 from .hydrodynamics import distributed_hydrodynamic_forces
 
-ROOT = Path(__file__).resolve().parents[3]
-SIMULATION_DIR = Path(__file__).resolve().parents[2]
+# Resolve model assets from the source checkout or the known Docker COPY path.
+# Installed packages live under site-packages, which is not the asset directory.
+_SOURCE_SIMULATION_DIR = Path(__file__).resolve().parents[2]
+_CONTAINER_SIMULATION_DIR = Path("/app/simulation")
+SIMULATION_DIR = Path(os.getenv(
+    "OCTOPUS_SIMULATION_DIR",
+    str(_CONTAINER_SIMULATION_DIR if (_CONTAINER_SIMULATION_DIR / "models").is_dir()
+        else _SOURCE_SIMULATION_DIR),
+))
+ROOT = SIMULATION_DIR.parent
 MODEL_PATH = Path(os.getenv("OCTOPUS_MODEL_PATH", SIMULATION_DIR / "models" / "octopus_dt_cad.xml"))
-CONTINUUM_PATH = Path(__file__).resolve().parents[2] / "models" / "octopus_arm_continuum.xml"
+CONTINUUM_PATH = Path(os.getenv(
+    "OCTOPUS_CONTINUUM_MODEL_PATH",
+    SIMULATION_DIR / "models" / "octopus_arm_continuum.xml",
+))
+SOFT_CONTINUUM_PATH = Path(os.getenv(
+    "OCTOPUS_SOFT_MODEL_PATH",
+    SIMULATION_DIR / "models" / "octopus_soft_continuum.xml",
+))
 CALIBRATION_DIR = Path(os.getenv("OCTOPUS_CALIBRATION_DIR", ROOT / "research" / "calibration"))
 ARM_COUNT = 8
 CHAMBER_COUNT = 10
@@ -119,7 +134,7 @@ class SimulationEngine:
     def require_soft(self) -> tuple[mujoco.MjModel, mujoco.MjData]:
         with self.lock:
             if self.soft_model is None:
-                soft_path = SIMULATION_DIR / "models" / "octopus_soft_continuum.xml"
+                soft_path = SOFT_CONTINUUM_PATH
                 if not soft_path.is_file():
                     raise FileNotFoundError(f"Soft continuum MJCF not found: {soft_path}")
                 model = mujoco.MjModel.from_xml_path(str(soft_path))
