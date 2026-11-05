@@ -3,7 +3,6 @@ from pathlib import Path
 import mujoco
 import numpy as np
 
-
 MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "octopus_soft_continuum.xml"
 
 
