@@ -30,3 +30,16 @@ The initial environment applies simplified buoyancy and velocity-dependent drag 
 - Hysteresis, viscoelasticity, fatigue, and manufacturing tolerances
 
 The next physics milestone is a single-arm model calibrated against measured tip displacement and pressure-response data.
+
+## Pressure calibration workflow
+
+The browser's chamber controls are visualization inputs only. A fitted pressure
+response must be derived from physical measurements before it is used for
+prediction. The Python module `octopus_dt.calibration` accepts a matrix with one
+column per chamber and a measured tip-angle vector, fits an identifiable
+regularized linear model, and returns JSON-serializable coefficients plus RMSE
+and R². Collect at least 11 independent samples for a ten-chamber arm, vary the
+chambers independently enough to avoid a rank-deficient dataset, and cover the
+operating pressure range. Fit each arm or demonstrably equivalent arm separately.
+Do not use the resulting linear model outside its measured range without further
+validation; it does not model hysteresis, pressure dynamics, or viscoelasticity.
