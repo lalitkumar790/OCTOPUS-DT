@@ -15,11 +15,11 @@ import threading
 from pathlib import Path
 from typing import Any
 
+import mujoco
+import numpy as np
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-import mujoco
-import numpy as np
 from pydantic import BaseModel, Field
 
 from .actuation import travelling_wave_joint_targets
