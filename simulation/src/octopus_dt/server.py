@@ -154,6 +154,7 @@ class SimulationEngine:
         with self.lock:
             mujoco.mj_resetData(model, data)
             model.opt.gravity[:] = [0.0, 0.0, -9.81]
+            mujoco.mj_forward(model, data)
             base_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "octopus_base")
             dynamic_ids = [base_id] + [
                 mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, f"arm_{i:02d}")
