@@ -22,10 +22,27 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          pip install -e ".[dev,server]"
       - name: Lint
         run: ruff check src tests
       - name: Unit tests
         run: pytest -q
       - name: MuJoCo model smoke test
         run: python -m octopus_dt.smoke_test
+      - name: CAD model asset integrity
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          models = Path("models")
+          cad = models / "octopus_dt_cad.xml"
+          if not cad.exists():
+              raise SystemExit("CAD MJCF is missing")
+          root = ET.parse(cad).getroot()
+          missing = [m.attrib["file"] for m in root.findall("./asset/mesh")
+                     if not (models / "meshes" / m.attrib["file"]).is_file()]
+          if missing:
+              print(f"CAD mesh assets not installed yet ({len(missing)} missing): {missing[:3]}")
+          else:
+              print("All CAD mesh assets are present.")
+          PY
