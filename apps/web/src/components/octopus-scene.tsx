@@ -34,7 +34,7 @@ export default function OctopusScene({
   apiBase: configuredApiBase, simulationAvailable: externalSimulationAvailable,
   mujocoArms: externalMujocoArms = [],
 }: Props) {
-  const apiBase = (configuredApiBase ?? process.env.NEXT_PUBLIC_SIM_API_URL ?? "").replace(/\\/$/, "");
+  const apiBase = (configuredApiBase ?? process.env.NEXT_PUBLIC_SIM_API_URL ?? "").replace(/\/$/, "");
   const [apiConnected, setApiConnected] = useState(false);
   const [liveMujocoArms, setLiveMujocoArms] = useState<ArmState[]>([]);
   const simulationAvailable = externalSimulationAvailable ?? apiConnected;
