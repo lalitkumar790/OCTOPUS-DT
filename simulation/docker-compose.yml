@@ -8,7 +8,9 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     environment:
+      OCTOPUS_SIMULATION_DIR: /app/simulation
       OCTOPUS_MODEL_PATH: /app/simulation/models/octopus_dt_cad.xml
+      OCTOPUS_SOFT_MODEL_PATH: /app/simulation/models/octopus_soft_continuum.xml
       OCTOPUS_CALIBRATION_DIR: /data/calibration
       OCTOPUS_CORS_ORIGINS: ${OCTOPUS_CORS_ORIGINS:-https://octopus-dt.vercel.app}
     volumes:
