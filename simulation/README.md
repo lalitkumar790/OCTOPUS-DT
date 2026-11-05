@@ -85,3 +85,21 @@ CFD, vortex shedding, added-mass modelling, or fluid-structure interaction.
 The CAD model currently has rigid tentacles with one hinge per arm. Reported
 displacement and actuator work are simulation outputs conditional on the
 declared mass, fluid and drag assumptions, not validated swimming performance.
+
+## Install the CAD mesh package (Windows)
+
+Download the supplied `OCTOPUS_DT_CAD_MJCF_repo_update.zip` package to Downloads.
+Install the simulation dependencies first, then run the repository installer from
+the repository root:
+
+```powershell
+cd simulation
+python -m pip install -e ".[server,dev]"
+cd ..
+Set-ExecutionPolicy -Scope Process Bypass
+.\tools\install_cad_model.ps1 -PackageZip "$HOME\Downloads\OCTOPUS_DT_CAD_MJCF_repo_update.zip"
+```
+
+The installer checks all 30 STL references, applies the eight radial arm-frame
+quaternions, compiles the CAD MJCF with MuJoCo, runs the simulation smoke test,
+and only then commits/pushes the mesh assets and corrected MJCF files.
