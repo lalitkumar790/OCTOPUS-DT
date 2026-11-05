@@ -18,6 +18,7 @@ from typing import Any
 import mujoco
 import numpy as np
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -27,7 +28,8 @@ from .hydrodynamics import distributed_hydrodynamic_forces
 
 
 ROOT = Path(__file__).resolve().parents[3]
-MODEL_PATH = Path(os.getenv("OCTOPUS_MODEL_PATH", ROOT / "models" / "octopus_dt_cad.xml"))
+SIMULATION_DIR = Path(__file__).resolve().parents[2]
+MODEL_PATH = Path(os.getenv("OCTOPUS_MODEL_PATH", SIMULATION_DIR / "models" / "octopus_dt_cad.xml"))
 CONTINUUM_PATH = Path(__file__).resolve().parents[2] / "models" / "octopus_arm_continuum.xml"
 CALIBRATION_DIR = Path(os.getenv("OCTOPUS_CALIBRATION_DIR", ROOT / "research" / "calibration"))
 ARM_COUNT = 8
@@ -197,7 +199,7 @@ class SimulationEngine:
                     trace.append({
                         "time_s": float(data.time),
                         "base_position_m": position.tolist(),
-                        "speed_m_s": float(np.linalg.norm(data.qvel[:3])),
+                        "speed_m_s": float(np.linalg.norm(data.qvel[3:6])),
                         "actuator_power_w": power,
                     })
             end = data.xpos[base_id].copy()
@@ -230,6 +232,16 @@ app.add_middleware(
     allow_methods=["GET", "POST"], allow_headers=["*"],
 )
 
+
+
+@app.get("/assets/meshes/{filename}")
+def cad_mesh(filename: str) -> FileResponse:
+    if Path(filename).name != filename or not filename.endswith(".stl"):
+        raise HTTPException(status_code=404, detail="Mesh not found")
+    mesh_path = MODEL_PATH.parent / "meshes" / filename
+    if not mesh_path.is_file():
+        raise HTTPException(status_code=404, detail=f"CAD mesh asset is missing: {filename}")
+    return FileResponse(mesh_path, media_type="model/stl", filename=filename)
 
 @app.get("/health")
 def health() -> dict[str, Any]:
