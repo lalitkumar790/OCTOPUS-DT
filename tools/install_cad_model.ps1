@@ -40,8 +40,7 @@ try {
   Set-Content -LiteralPath $XmlPath -Value $XmlText -Encoding utf8
   Copy-Item -LiteralPath $XmlPath -Destination (Join-Path $TargetModels "octopus_dt_cad.xml") -Force
 
-  Write-Host "CAD model files copied into $TargetModels"
-  Write-Host "Checking mesh assets..."
+  Write-Host "Checking all CAD mesh references..."
   [xml]$Mjcf = Get-Content -Raw -LiteralPath $XmlPath
   $MeshDir = Join-Path $TargetModels "meshes"
   $Missing = @()
@@ -53,15 +52,27 @@ try {
     throw ("Missing mesh assets: " + ($Missing -join ", "))
   }
 
+  # Compile the real CAD assembly before committing it.
+  $env:OCTOPUS_MODEL_PATH = Join-Path $TargetModels "octopus_dt_cad.xml"
+  Push-Location (Join-Path $RepoRoot "simulation")
+  try {
+    python -c "import os, mujoco; m=mujoco.MjModel.from_xml_path(os.environ['OCTOPUS_MODEL_PATH']); assert m.nu == 8; print(f'CAD MJCF compiled: {m.nbody} bodies, {m.njnt} joints, {m.nu} actuators')"
+    if ($LASTEXITCODE -ne 0) { throw "MuJoCo could not compile the CAD MJCF. Assets were not committed." }
+    python -m octopus_dt.smoke_test
+    if ($LASTEXITCODE -ne 0) { throw "MuJoCo smoke test failed. Assets were not committed." }
+  } finally {
+    Pop-Location
+  }
+
   Push-Location $RepoRoot
   try {
     git add simulation/models
-    git commit -m "feat(simulation): install and orient CAD-derived octopus assembly"
+    git commit -m "feat(simulation): install and validate CAD-derived octopus assembly"
     git push origin main
   } finally {
     Pop-Location
   }
-  Write-Host "CAD meshes and corrected radial arm frames pushed. Run GitHub Actions to compile the CAD MJCF."
+  Write-Host "CAD meshes compiled and pushed. GitHub Actions and Vercel will now update."
 } finally {
   if (Test-Path $TempRoot) { Remove-Item -LiteralPath $TempRoot -Recurse -Force }
 }
