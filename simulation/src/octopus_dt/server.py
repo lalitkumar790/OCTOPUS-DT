@@ -18,8 +18,8 @@ from typing import Any
 import mujoco
 import numpy as np
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from .actuation import travelling_wave_joint_targets
@@ -249,7 +249,7 @@ def health() -> dict[str, Any]:
         model, _ = engine.require()
         return {"status": "ready", "engine": "MuJoCo", "model": str(MODEL_PATH),
                 "cad_model": True, "nu": int(model.nu)}
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         return {"status": "unavailable", "engine": "MuJoCo", "cad_model": False,
                 "detail": str(exc)}
 
