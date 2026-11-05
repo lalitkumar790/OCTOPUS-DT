@@ -90,15 +90,15 @@ export default function MuJoCoBridge() {
   const applyPressure = async () => {
     if (!API) return;
     try {
-      const response = await fetch(API + "/api/continuum/pressure", {
+      const response = await fetch(API + "/api/soft/pressure", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pressures_kpa: pressures, steps: 50 }),
+        body: JSON.stringify({ arm_index: arm, pressures_kpa: pressures, steps: 300 }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.detail ?? "Continuum pressure run failed");
       setMessage(
-        `10-segment MuJoCo arm: tip [${payload.tip_position_m.map((x: number) => x.toFixed(3)).join(", ")}] m`,
+        `Soft arm ${String(arm + 1).padStart(2, "0")} bent in MuJoCo · tip [${payload.arms[arm].tip_position_m.map((x: number) => x.toFixed(3)).join(", ")}] m · 10 segment angles updated`,
       );
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Request failed");
@@ -197,8 +197,8 @@ export default function MuJoCoBridge() {
           </div>}
         </div>
         <div className="mujoco-card">
-          <div className="panel-kicker">SINGLE ARM / 10 SEGMENT CONTINUUM SURROGATE</div>
-          <p className="control-intro">Enter measured pressure-to-segment-angle data to fit the response. Pressure commands stay disabled until calibration exists.</p>
+          <div className="panel-kicker">8-ARM SOFT CONTINUUM / 80 PRESSURE-DRIVEN SEGMENTS</div>
+          <p className="control-intro">Apply pressure to the ten serial chamber sections of the selected arm. MuJoCo converts chamber pressure into distributed joint torque; passive segment stiffness resists bending. This is an uncalibrated pneumatic surrogate, not a validated silicone-material model.</p>
           <div className="continuum-pressure">
             {pressures.map((pressure, index) => (
               <label key={index}>C{index + 1}
@@ -207,7 +207,7 @@ export default function MuJoCoBridge() {
               </label>
             ))}
           </div>
-          <button className="run-button" onClick={applyPressure}>RUN CALIBRATED CONTINUUM ARM</button>
+          <button className="run-button" onClick={applyPressure}>APPLY PRESSURE TO SOFT ARM</button>
         </div>
         <div className="mujoco-card calibration-card">
           <div className="panel-kicker">MEASURED DATA / CALIBRATION FIT</div>
@@ -225,7 +225,7 @@ export default function MuJoCoBridge() {
         </div>
         <div className="mujoco-card">
           <div className="panel-kicker">UNDERWATER / LOCOMOTION EXPERIMENT</div>
-          <p className="control-intro">Runs an eight-arm travelling-wave hinge gait with distributed buoyancy and quadratic drag applied inside MuJoCo.</p>
+          <p className="control-intro">Exploratory rigid-hinge locomotion experiment. The new pressure-driven continuum model is controlled separately above; this gait runner has not yet been migrated to soft-arm dynamics.</p>
           <button className="run-button" disabled={!state || busy} onClick={runGait}>
             {busy ? "RUNNING MUJOCO…" : "RUN 8 SECOND GAIT"}
           </button>
@@ -240,7 +240,7 @@ export default function MuJoCoBridge() {
         </div>
       </div>
       {message && <p className="bridge-message">{message}</p>}
-      <p className="mujoco-footnote">Research boundary: the CAD model is rigid with one hinge per arm. The continuum arm is a ten-link surrogate with placeholder inertias/gains. Underwater forces are reduced-order assumptions, not CFD/FSI. Calibrated performance claims require measured mass properties, displaced volume, drag, pressure and bending data.</p>
+      <p className="mujoco-footnote">Research boundary: pressure-driven control now runs an eight-arm, ten-segment-per-arm MuJoCo continuum surrogate (80 active joints). Pressure-to-torque conversion, stiffness, damping, segment mass and geometry are provisional parameters; they must be identified from measured actuator and material data. The original CAD model remains a rigid assembly, and the underwater gait experiment is still rigid-hinge based.</p>
     </section>
   );
 }
