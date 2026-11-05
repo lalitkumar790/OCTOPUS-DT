@@ -1,56 +1,38 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import OctopusScene from "@/components/octopus-scene";
-const armNames = ["North","North-east","East","South-east","South","South-west","West","North-west"];
-export default function Home() {
-  const [amplitude,setAmplitude] = useState(0.55);
-  const [frequency,setFrequency] = useState(0.25);
-  const [phase,setPhase] = useState(0.3);
-  const [selectedArm,setSelectedArm] = useState(0);
-  const [paused,setPaused] = useState(false);
-  return <main className="shell">
-    <header className="topbar">
-      <a className="brand" href="#"><span className="brand-mark">O</span><span>OCTOPUS<span className="brand-dim">-DT</span></span></a>
-      <div className="topbar-center"><span className="live-dot"/> DIGITAL TWIN <span className="topbar-divider">/</span> RESEARCH BUILD 0.1</div>
-      <a className="github-link" href="https://github.com/lalitkumar790/OCTOPUS-DT" target="_blank" rel="noreferrer">SOURCE ↗</a>
-    </header>
-    <section className="hero">
-      <div className="eyebrow"><span>FIELD NOTE 001</span><i/> SOFT ROBOTICS / UNDERWATER SYSTEMS</div>
-      <h1>Eight arms.<br/><em>One living system.</em></h1>
-      <p className="hero-copy">A digital twin for exploring the mechanics, actuation and locomotion of a pneumatic soft robotic octopus.</p>
-    </section>
-    <section className="workspace">
-      <div className="simulation-panel">
-        <div className="panel-head"><div><div className="panel-kicker">01 / SIMULATION VIEWPORT</div><h2>Robot morphology</h2></div><div className="viewport-status"><span className="live-dot"/> LIVE PREVIEW</div></div>
-        <div className="viewport">
-          <div className="viewport-grid"/>
-          <OctopusScene amplitude={amplitude} frequency={frequency} phase={phase} selectedArm={selectedArm} paused={paused}/>
-          <div className="axis-label axis-x">X <span>→</span></div><div className="axis-label axis-y">Y <span>↑</span></div>
-          <div className="viewport-caption">FIG 01. / PARAMETRIC CABLE MORPHOLOGY <span>NOT TO SCALE</span></div>
-          <div className="viewport-tools"><span>3D</span><span>ORBIT / ZOOM</span></div>
-        </div>
-        <div className="arm-selector"><div className="selector-label">SELECT ARM</div>
-          <div className="arm-buttons">{armNames.map((name,index)=><button key={name} onClick={()=>setSelectedArm(index)} className={selectedArm===index?"arm-button active":"arm-button"} aria-label={"Select "+name+" arm"}>{String(index+1).padStart(2,"0")}</button>)}</div>
-          <div className="selected-arm">{armNames[selectedArm].toUpperCase()} <span>ARM {String(selectedArm+1).padStart(2,"0")}</span></div>
-        </div>
-      </div>
-      <aside className="control-panel">
-        <div className="panel-kicker">02 / CONTROL SURFACE</div><h2>Actuation inputs</h2>
-        <p className="control-intro">Adjust the visualized travelling-wave profile. These are preview parameters, not calibrated pressure commands.</p>
-        <div className="control-group"><div className="control-label"><label htmlFor="amplitude">BENDING AMPLITUDE</label><output>{amplitude.toFixed(2)} <small>scale*</small></output></div><input id="amplitude" type="range" min="0.05" max="1.2" step="0.01" value={amplitude} onChange={e=>setAmplitude(Number(e.target.value))}/><div className="range-ends"><span>RELAXED</span><span>HIGH</span></div></div>
-        <div className="control-group"><div className="control-label"><label htmlFor="frequency">WAVE FREQUENCY</label><output>{frequency.toFixed(2)} <small>Hz</small></output></div><input id="frequency" type="range" min="0.05" max="1" step="0.01" value={frequency} onChange={e=>setFrequency(Number(e.target.value))}/><div className="range-ends"><span>0.05 Hz</span><span>1.00 Hz</span></div></div>
-        <div className="control-group"><div className="control-label"><label htmlFor="phase">WAVE PHASE</label><output>{phase.toFixed(2)} <small>rad</small></output></div><input id="phase" type="range" min="0" max="6.28" step="0.01" value={phase} onChange={e=>setPhase(Number(e.target.value))}/><div className="range-ends"><span>0</span><span>2π</span></div></div>
-        <div className="control-actions"><button className="run-button" onClick={()=>setPaused(!paused)}><span>{paused?"▶":"Ⅱ"}</span>{paused?"RESUME PREVIEW":"PAUSE PREVIEW"}</button><button className="reset-button" onClick={()=>{setAmplitude(0.55);setFrequency(0.25);setPhase(0.3);setPaused(false);}}>RESET ↺</button></div>
-        <div className="control-footnote">* Visualization scale only; not a measured tip displacement.</div>
-      </aside>
-    </section>
-    <section className="metrics">
-      <div className="metric"><span className="metric-label">ARM COUNT</span><strong>08</strong><small>RADIAL ARRANGEMENT</small></div>
-      <div className="metric"><span className="metric-label">ACTIVE LENGTH</span><strong>220<span>mm</span></strong><small>CAD-DERIVED INPUT</small></div>
-      <div className="metric"><span className="metric-label">CHAMBERS / ARM</span><strong>10</strong><small>PNEUMATIC DESIGN</small></div>
-      <div className="metric"><span className="metric-label">MODEL STATUS</span><strong className="status-text">EARLY</strong><small>CABLE APPROXIMATION</small></div>
-    </section>
-    <section className="research-note"><div className="note-icon">i</div><div><strong>RESEARCH INTEGRITY NOTICE</strong><p>This browser viewport is a procedural 3D visualization for interface development. It is not a live MuJoCo simulation. The cable model approximates centerline bending and twist; it does not resolve chamber inflation, 3D silicone hyperelasticity, or fluid-structure interaction. Validate against physical measurements before drawing performance conclusions.</p></div><a href="https://github.com/lalitkumar790/OCTOPUS-DT/blob/main/docs/model-assumptions.md" target="_blank" rel="noreferrer">MODEL ASSUMPTIONS ↗</a></section>
-    <footer><span>OCTOPUS-DT <i>—</i> OPEN RESEARCH PLATFORM</span><span>MUJOCO × PYTHON × THREE.JS</span><span>BUILD 0.1.0 <i>© 2026</i></span></footer>
-  </main>;
+const armNames=["North","North-east","East","South-east","South","South-west","West","North-west"];
+const CHAMBERS=10,MAX_KPA=80;
+const initialPressures=()=>Array.from({length:8},()=>Array(CHAMBERS).fill(0));
+export default function Home(){
+ const [pressures,setPressures]=useState<number[][]>(initialPressures),[selectedArm,setSelectedArm]=useState(0),[paused,setPaused]=useState(false),[underwater,setUnderwater]=useState(true);
+ const [waterDensity,setWaterDensity]=useState(997),[robotMass,setRobotMass]=useState(1.1),[displacedVolume,setDisplacedVolume]=useState(.001),[speed,setSpeed]=useState(.15),[dragCoefficient,setDragCoefficient]=useState(1.1),[area,setArea]=useState(.06),[runName,setRunName]=useState("Baseline pressure sweep");
+ const updatePressure=(chamber:number,value:number)=>setPressures(old=>old.map((arm,i)=>i===selectedArm?arm.map((p,j)=>j===chamber?value:p):arm));
+ const setArmPressure=(value:number)=>setPressures(old=>old.map((arm,i)=>i===selectedArm?arm.map(()=>value):arm));
+ const metrics=useMemo(()=>{const buoyancy=waterDensity*9.81*displacedVolume,weight=robotMass*9.81,net=buoyancy-weight,drag=.5*waterDensity*dragCoefficient*area*speed*speed,arm=pressures[selectedArm],mean=arm.reduce((a,b)=>a+b,0)/CHAMBERS,max=Math.max(...arm);return {buoyancy,weight,net,drag,mean,max};},[waterDensity,robotMass,displacedVolume,speed,dragCoefficient,area,pressures,selectedArm]);
+ const exportRun=()=>{const payload={project:"OCTOPUS-DT",runName,createdAt:new Date().toISOString(),modelStatus:"browser-side reduced-order estimate; not a MuJoCo result",actuation:{selectedArm:selectedArm+1,pressuresKPa:pressures},fluid:{waterDensityKgM3:waterDensity,robotMassKg:robotMass,displacedVolumeM3:displacedVolume,speedMS:speed,dragCoefficient,projectedAreaM2:area},estimatedOutputs:{buoyancyN:metrics.buoyancy,weightN:metrics.weight,netVerticalForceN:metrics.net,dragN:metrics.drag,selectedArmMeanPressureKPa:metrics.mean}};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="octopus-dt-experiment.json";a.click();URL.revokeObjectURL(url);};
+ return <main className="shell">
+ <header className="topbar"><a className="brand" href="#"><span className="brand-mark">O</span><span>OCTOPUS<span className="brand-dim">-DT</span></span></a><div className="topbar-center"><span className="live-dot"/> DIGITAL TWIN <span className="topbar-divider">/</span> RESEARCH CONSOLE 0.2</div><a className="github-link" href="https://github.com/lalitkumar790/OCTOPUS-DT" target="_blank" rel="noreferrer">SOURCE ↗</a></header>
+ <section className="hero"><div className="eyebrow"><span>FIELD NOTE 002</span><i/> SOFT ROBOTICS / UNDERWATER SYSTEMS</div><h1>Eight arms.<br/><em>One research system.</em></h1><p className="hero-copy">Explore chamber-level actuation, morphology and underwater load estimates in an interactive octopus robotics workbench.</p></section>
+ <section className="workspace"><div className="simulation-panel"><div className="panel-head"><div><div className="panel-kicker">01 / INTERACTIVE VIEWER</div><h2>Robot morphology</h2></div><div className="viewport-status"><span className="live-dot"/>{underwater?"UNDERWATER VIEW":"DRY VIEW"}</div></div>
+ <div className="viewport"><div className="viewport-grid"/><OctopusScene pressures={pressures} selectedArm={selectedArm} paused={paused} underwater={underwater} onSelectArm={setSelectedArm}/><div className="axis-label axis-x">X <span>→</span></div><div className="axis-label axis-y">Y <span>↑</span></div><div className="viewport-caption">FIG 01. / PRESSURE-DRIVEN PROCEDURAL MORPHOLOGY <span>NOT TO SCALE</span></div><div className="viewport-tools"><span>3D</span><span>CLICK ARM / ORBIT / ZOOM</span></div></div>
+ <div className="arm-selector"><div className="selector-label">SELECT ARM</div><div className="arm-buttons">{armNames.map((name,index)=><button key={name} onClick={()=>setSelectedArm(index)} className={selectedArm===index?"arm-button active":"arm-button"} aria-label={"Select "+name+" arm"}>{String(index+1).padStart(2,"0")}</button>)}</div><div className="selected-arm">{armNames[selectedArm].toUpperCase()} <span>ARM {String(selectedArm+1).padStart(2,"0")}</span></div></div></div>
+ <aside className="control-panel"><div className="panel-kicker">02 / PNEUMATIC CONTROL</div><h2>Chamber pressure</h2><p className="control-intro">Set each of the ten serial chambers on the selected arm. Pressure is mapped to a visual bending response only; material and pressure-to-curvature calibration are not yet available.</p>
+ <div className="pressure-summary"><div><span>MEAN PRESSURE</span><strong>{metrics.mean.toFixed(1)} <small>kPa</small></strong></div><div><span>PEAK PRESSURE</span><strong>{metrics.max.toFixed(1)} <small>kPa</small></strong></div></div><div className="pressure-actions"><button onClick={()=>setArmPressure(40)}>SET ALL 40 kPa</button><button onClick={()=>setArmPressure(0)}>VENT ARM</button></div>
+ <div className="chamber-list">{pressures[selectedArm].map((p,i)=><div className="chamber-row" key={i}><label htmlFor={"chamber-"+i}>C{i+1}<span>{((i+1)*10)}% L</span></label><input id={"chamber-"+i} type="range" min="0" max={MAX_KPA} step="1" value={p} onChange={e=>updatePressure(i,Number(e.target.value))}/><output>{p} <small>kPa</small></output></div>)}</div>
+ <div className="pressure-foot"><span>0 kPa / VENTED</span><span>80 kPa / UI LIMIT</span></div><div className="control-actions"><button className="run-button" onClick={()=>setPaused(!paused)}><span>{paused?"▶":"Ⅱ"}</span>{paused?"RESUME MOTION":"PAUSE MOTION"}</button><button className="reset-button" onClick={()=>{setPressures(initialPressures());setPaused(false);}}>VENT ALL ↺</button></div></aside></section>
+ <section className="experiment-section"><div className="section-heading"><div><div className="panel-kicker">03 / UNDERWATER EXPERIMENTS</div><h2>Fluid environment & load model</h2></div><button className={underwater?"toggle-button active":"toggle-button"} onClick={()=>setUnderwater(!underwater)}>{underwater?"UNDERWATER ON":"UNDERWATER OFF"}</button></div>
+ <div className="experiment-grid"><div className="experiment-controls"><p className="control-intro">Adjust environmental and body assumptions. These are first-order static buoyancy and quadratic drag estimates, not CFD or fluid–structure interaction.</p>
+ 
+ <div className="experiment-control"><label htmlFor="density">WATER DENSITY <output>{waterDensity.toFixed(0)} kg/m³</output></label><input id="density" type="range" min="950" max="1030" step="1" value={waterDensity} onChange={e=>setWaterDensity(Number(e.target.value))}/></div>
+ <div className="experiment-control"><label htmlFor="mass">ROBOT MASS <output>{robotMass.toFixed(2)} kg</output></label><input id="mass" type="range" min=".3" max="3" step=".05" value={robotMass} onChange={e=>setRobotMass(Number(e.target.value))}/></div>
+ <div className="experiment-control"><label htmlFor="volume">DISPLACED VOLUME <output>{(displacedVolume*1000).toFixed(2)} L</output></label><input id="volume" type="range" min=".0003" max=".004" step=".0001" value={displacedVolume} onChange={e=>setDisplacedVolume(Number(e.target.value))}/></div>
+ <div className="experiment-control"><label htmlFor="speed">FORWARD SPEED <output>{speed.toFixed(2)} m/s</output></label><input id="speed" type="range" min="0" max=".8" step=".01" value={speed} onChange={e=>setSpeed(Number(e.target.value))}/></div>
+ <div className="experiment-control"><label htmlFor="cd">DRAG COEFFICIENT <output>{dragCoefficient.toFixed(2)}</output></label><input id="cd" type="range" min=".2" max="2.5" step=".05" value={dragCoefficient} onChange={e=>setDragCoefficient(Number(e.target.value))}/></div>
+ <div className="experiment-control"><label htmlFor="area">PROJECTED AREA <output>{area.toFixed(3)} m²</output></label><input id="area" type="range" min=".01" max=".2" step=".005" value={area} onChange={e=>setArea(Number(e.target.value))}/></div>
+ </div><div className="result-panel"><div className="result-title">LIVE ESTIMATES <span>REDUCED-ORDER MODEL</span></div><div className="force-row"><span>BUOYANCY</span><strong>{metrics.buoyancy.toFixed(2)} <small>N</small></strong></div><div className="force-row"><span>WEIGHT</span><strong>{metrics.weight.toFixed(2)} <small>N</small></strong></div><div className="force-row net"><span>NET VERTICAL FORCE</span><strong>{metrics.net>=0?"+":""}{metrics.net.toFixed(2)} <small>N</small></strong><em>{metrics.net>.15?"UPWARD":metrics.net<-.15?"DOWNWARD":"NEAR NEUTRAL"}</em></div><div className="force-row"><span>DRAG AT COMMAND SPEED</span><strong>{metrics.drag.toFixed(3)} <small>N</small></strong></div><div className="result-note">Drag uses ½ρC<sub>d</sub>Av². Buoyancy uses ρgV. Locomotion thrust is not predicted yet; this panel reports environmental load estimates only.</div></div></div></section>
+ <section className="run-section"><div><div className="panel-kicker">04 / EXPERIMENT RECORD</div><h2>Save a reproducible run</h2><p>Export current chamber pressures and environmental assumptions as a JSON experiment record.</p></div><div className="run-actions"><input aria-label="Experiment name" value={runName} onChange={e=>setRunName(e.target.value)}/><button className="run-button" onClick={exportRun}>EXPORT JSON ↓</button></div></section>
+ <section className="metrics"><div className="metric"><span className="metric-label">ARM COUNT</span><strong>08</strong><small>RADIAL ARRANGEMENT</small></div><div className="metric"><span className="metric-label">CHAMBERS / ARM</span><strong>10</strong><small>CAD DESIGN INPUT</small></div><div className="metric"><span className="metric-label">PRESSURE RANGE</span><strong>0–80<span>kPa</span></strong><small>UI RANGE ONLY</small></div><div className="metric"><span className="metric-label">MODEL STATUS</span><strong className="status-text">ESTIMATE</strong><small>NOT CALIBRATED</small></div></section>
+ <section className="research-note"><div className="note-icon">i</div><div><strong>RESEARCH INTEGRITY / CURRENT LIMITATIONS</strong><p>This browser workbench uses a procedural Three.js model and first-order buoyancy/drag calculations. It does not yet load CAD meshes, execute MuJoCo, model pneumatic chamber inflation, solve silicone hyperelasticity, or simulate fluid–structure interaction. Pressure inputs are not hardware commands. Treat exported values as experiment setup metadata, not measured results.</p></div><a href="https://github.com/lalitkumar790/OCTOPUS-DT/blob/main/docs/model-assumptions.md" target="_blank" rel="noreferrer">MODEL ASSUMPTIONS ↗</a></section>
+ <footer><span>OCTOPUS-DT <i>—</i> OPEN RESEARCH PLATFORM</span><span>MUJOCO × PYTHON × THREE.JS</span><span>BUILD 0.2.0 <i>© 2026</i></span></footer></main>;
 }
