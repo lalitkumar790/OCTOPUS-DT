@@ -26,6 +26,36 @@ uvicorn octopus_dt.server:app --host 0.0.0.0 --port 8000
 `GET /health` reports unavailable if the CAD XML or referenced STL files are missing.
 The service will not silently substitute the browser visualization or cable scaffold.
 
+## Run the backend with Docker Desktop on a Windows laptop
+
+Use the laptop as the simulation host first. Docker runs the Linux MuJoCo service
+inside a container; no MuJoCo installation is needed on the host for normal
+runtime. The CAD STL assets must be present before building the image.
+
+From PowerShell at the repository root, after installing the CAD package with
+the Windows installer below:
+
+```powershell
+cd simulation
+Copy-Item .env.example .env
+docker compose up -d --build
+docker compose ps
+docker compose logs -f octopus-mujoco
+```
+
+In a second PowerShell window, verify the API:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/health
+Invoke-RestMethod http://127.0.0.1:8000/api/model
+```
+
+Open `http://127.0.0.1:8000/docs` for the interactive API documentation.
+The Compose port is bound to `127.0.0.1`, so it is available only on this
+laptop by default. Keep it local until authentication and the Cloudflare
+hostname are configured. To stop it, run `docker compose down` from
+`simulation/`; calibration data remains in `simulation/data/calibration`.
+
 ## Deploy the backend on the Raspberry Pi / another persistent host
 
 From the repository root on the host:
