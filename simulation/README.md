@@ -3,7 +3,7 @@
 The browser application is a Three.js renderer. The authoritative physics engine is the
 separate Python MuJoCo service in `octopus_dt.server`.
 
-## Run the real CAD MuJoCo backend
+## Run the real CAD MuJoCo backend locally
 
 The CAD MJCF and its 30 STL assets must both be installed in `models/`. From the
 repository root:
@@ -14,11 +14,40 @@ python -m pip install -e ".[server,dev]"
 OCTOPUS_MODEL_PATH="$PWD/models/octopus_dt_cad.xml" uvicorn octopus_dt.server:app --host 0.0.0.0 --port 8000
 ```
 
-On Windows PowerShell, set the environment variable with
-`$env:OCTOPUS_MODEL_PATH = "$PWD\models\octopus_dt_cad.xml"` before starting Uvicorn.
+On Windows PowerShell:
+
+```powershell
+cd simulation
+python -m pip install -e ".[server,dev]"
+$env:OCTOPUS_MODEL_PATH = "$PWD\models\octopus_dt_cad.xml"
+uvicorn octopus_dt.server:app --host 0.0.0.0 --port 8000
+```
 
 `GET /health` reports unavailable if the CAD XML or referenced STL files are missing.
-It will not silently substitute the browser visualization or the cable scaffold.
+The service will not silently substitute the browser visualization or cable scaffold.
+
+## Deploy the backend on the Raspberry Pi / another persistent host
+
+From the repository root on the host:
+
+```bash
+cd simulation
+cp .env.example .env
+docker compose up -d --build
+docker compose logs -f octopus-mujoco
+curl http://127.0.0.1:8000/health
+```
+
+The service binds only to loopback on port 8000. To expose it, configure a Cloudflare
+Tunnel public hostname such as `sim-octopus.your-domain` to
+`http://host.docker.internal:8000`. If cloudflared runs in Docker, add
+`extra_hosts: ["host.docker.internal:host-gateway"]` to that cloudflared service.
+Set `OCTOPUS_CORS_ORIGINS` in `.env` to the exact Vercel origin and restart the
+backend. Then add `NEXT_PUBLIC_SIM_API_URL=https://sim-octopus.your-domain` to the
+Vercel project's Production environment and redeploy the dashboard.
+
+Do not expose this research API publicly without authentication and rate limits.
+The CORS allow-list is not authentication. Keep the calibration volume persistent.
 
 ## API
 
@@ -29,6 +58,7 @@ It will not silently substitute the browser visualization or the cable scaffold.
 - `POST /api/experiments/locomotion`: MuJoCo travelling-wave hinge experiment with body-wise buoyancy and drag.
 - `POST /api/calibration/continuum`: fit ten pressure inputs to ten measured segment joint angles.
 - `POST /api/continuum/pressure`: run the ten-segment single-arm model using saved calibration.
+- `GET /assets/meshes/{filename}`: serve a CAD STL to the Three.js viewer.
 - `WS /ws`: live MuJoCo state stream.
 
 ## Single-arm continuum approximation
@@ -55,11 +85,3 @@ CFD, vortex shedding, added-mass modelling, or fluid-structure interaction.
 The CAD model currently has rigid tentacles with one hinge per arm. Reported
 displacement and actuator work are simulation outputs conditional on the
 declared mass, fluid and drag assumptions, not validated swimming performance.
-
-## Deployment
-
-Use `docker build -f simulation/Dockerfile -t octopus-dt-sim .` from the repo
-root, then run the container on a persistent Python host. Point the Vercel
-dashboard's `NEXT_PUBLIC_SIM_API_URL` at the public HTTPS API origin. Do not
-run MuJoCo inside a Vercel serverless function. Protect write endpoints with
-authentication/rate limits before exposing the API publicly.
