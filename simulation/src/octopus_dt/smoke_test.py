@@ -1,8 +1,8 @@
 """Compile CAD and ten-segment MuJoCo models; fall back only for absent CAD assets."""
 from __future__ import annotations
 
-from pathlib import Path
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import mujoco
 import numpy as np
