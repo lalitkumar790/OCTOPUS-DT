@@ -105,9 +105,17 @@ export default function OctopusScene({
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.target.set(0, 0, 0.04);
-    controls.minDistance = 0.36;
-    controls.maxDistance = 1.8;
-    controls.maxPolarAngle = Math.PI * 0.48;
+    // Allow a complete orbit, including views from directly above and below.
+    // The old 0.48 * PI ceiling prevented the camera from crossing the horizon.
+    controls.minPolarAngle = 0.015;
+    controls.maxPolarAngle = Math.PI - 0.015;
+    controls.minDistance = 0.22;
+    controls.maxDistance = 2.2;
+    controls.enableRotate = true;
+    controls.enableZoom = true;
+    controls.enablePan = true;
+    controls.screenSpacePanning = true;
+    controls.saveState();
     scene.add(new THREE.AmbientLight("#9ab8c5", 1.4));
     const key = new THREE.DirectionalLight("#d9f5ff", 3.2);
     key.position.set(-0.4, -0.5, 1.1);
@@ -294,6 +302,11 @@ export default function OctopusScene({
         });
       }
       controls.update();
+      // The ground disc is useful as a reference plane, but it would occlude
+      // the robot when the camera moves underneath it.
+      const viewingFromBelow = camera.position.z < floor.position.z;
+      floor.visible = !viewingFromBelow;
+      grid.visible = !viewingFromBelow;
       renderer.render(scene, camera);
     };
     frame = requestAnimationFrame(animate);
