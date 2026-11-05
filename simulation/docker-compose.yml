@@ -1,0 +1,15 @@
+services:
+  octopus-mujoco:
+    build:
+      context: ..
+      dockerfile: simulation/Dockerfile
+    container_name: octopus-mujoco
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      OCTOPUS_MODEL_PATH: /app/simulation/models/octopus_dt_cad.xml
+      OCTOPUS_CALIBRATION_DIR: /data/calibration
+      OCTOPUS_CORS_ORIGINS: ${OCTOPUS_CORS_ORIGINS:-https://octopus-dt.vercel.app}
+    volumes:
+      - ./data/calibration:/data/calibration
